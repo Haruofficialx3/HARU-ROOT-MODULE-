@@ -1,0 +1,31 @@
+name: Build HARU APK
+on:
+  workflow_dispatch:
+  push:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate project
+        run: |
+          ls -la
+          mkdir -p /tmp/haru
+          cp setup.sh /tmp/haru/
+          cd /tmp/haru
+          bash setup.sh
+          find . -name build.gradle.kts
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+      - name: Build
+        working-directory: /tmp/haru
+        run: gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HARU-OFFICIAL-APK
+          path: /tmp/haru/app/build/outputs/apk/debug/*.apk
