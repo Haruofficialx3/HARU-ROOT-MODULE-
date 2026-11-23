@@ -139,20 +139,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val BASE = "/data/adb/rootmodule"
-private val Cyan = Color(0xFF22D3EE)
-private val Violet = Color(0xFFC084FC)
-private val CardBg = Color(0xFF151C27)
-private val Muted = Color(0xFF9AA7B8)
+private val Cyan = Color(0xFFA78BFA)
+private val Violet = Color(0xFFF472B6)
+private val CardBg = Color(0xFF1A1626)
+private val Muted = Color(0xFFA1A1B5)
 
 data class Mode(val key: String, val emoji: String, val title: String, val desc: String, val color: Color)
 
 val MODES = listOf(
-    Mode("powersave", "🔋", "Power Save", "Longer battery, lower speed", Color(0xFF4ADE80)),
-    Mode("balanced", "⚖️", "Balanced", "Everyday balance of speed and battery", Color(0xFF60A5FA)),
-    Mode("performance", "🚀", "Performance", "Maximum speed, more battery use", Color(0xFFFB923C)),
-    Mode("gaming", "🎮", "Gaming Pro", "Performance + clear background apps", Color(0xFFF472B6)),
-    Mode("cooldown", "❄️", "Cool Down", "Limit the CPU for 2 minutes", Color(0xFF22D3EE)),
-    Mode("clear", "🧹", "Clear", "Free RAM by closing background apps", Color(0xFFFACC15)),
+    Mode("powersave", "🍃", "Eco", "Save battery", Color(0xFF34D399)),
+    Mode("balanced", "🌊", "Smooth", "Everyday use", Color(0xFF38BDF8)),
+    Mode("performance", "⚡", "Turbo", "Full speed", Color(0xFFFBBF24)),
+    Mode("gaming", "🔥", "Game On", "Turbo + free RAM", Color(0xFFFB7185)),
+    Mode("cooldown", "🧊", "Chill", "Cap CPU for 2 min", Color(0xFF67E8F9)),
+    Mode("clear", "💨", "Sweep", "Close background apps", Color(0xFFC4B5FD)),
 )
 
 class MainActivity : ComponentActivity() {
@@ -163,7 +163,7 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
         )
         setContent {
-            MaterialTheme(colorScheme = darkColorScheme(primary = Cyan, background = Color(0xFF0B0F14), surface = CardBg)) {
+            MaterialTheme(colorScheme = darkColorScheme(primary = Cyan, background = Color(0xFF0D0B14), surface = CardBg)) {
                 HaruApp()
             }
         }
@@ -226,7 +226,7 @@ fun HaruApp() {
 
     Box(
         Modifier.fillMaxSize().background(
-            Brush.verticalGradient(listOf(Color(0xFF0B0F14), Color(0xFF111A2B)))
+            Brush.verticalGradient(listOf(Color(0xFF0D0B14), Color(0xFF1B1030)))
         )
     ) {
       if (checking || root != true || moduleOk != true) {
@@ -236,19 +236,25 @@ fun HaruApp() {
             containerColor = Color.Transparent,
             contentColor = Color.White,
             bottomBar = {
-                NavigationBar(containerColor = Color(0xFF0E141D), contentColor = Color.White) {
-                    listOf("🏠" to "Home", "🛠️" to "Tools").forEachIndexed { i, (e, l) ->
-                        NavigationBarItem(
-                            selected = tab == i,
-                            onClick = { tab = i },
-                            icon = { Text(e, fontSize = 20.sp) },
-                            label = { Text(l) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedTextColor = Cyan,
-                                unselectedTextColor = Muted,
-                                indicatorColor = Color(0x3322D3EE),
-                            ),
-                        )
+                Box(
+                    Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 40.dp, vertical = 12.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Row(Modifier.clip(RoundedCornerShape(32.dp)).background(Color(0xFF241D36)).padding(6.dp)) {
+                        listOf("🏠" to "Home", "🛠️" to "Tools").forEachIndexed { i, (e, l) ->
+                            val sel = tab == i
+                            Row(
+                                Modifier.clip(RoundedCornerShape(26.dp))
+                                    .background(if (sel) Cyan.copy(alpha = 0.22f) else Color.Transparent)
+                                    .clickable { tab = i }
+                                    .padding(horizontal = 24.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(e, fontSize = 18.sp)
+                                Spacer(Modifier.width(6.dp))
+                                Text(l, color = if (sel) Cyan else Muted, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
                     }
                 }
             },
@@ -315,78 +321,102 @@ fun GateScreen(checking: Boolean, root: Boolean?, moduleOk: Boolean?, onRetry: (
 
 @Composable
 fun HomeScreen(root: Boolean?, current: String, busy: String?, cool: Int, onMode: (Mode) -> Unit) {
-    val currentTitle = MODES.firstOrNull { it.key == current }?.title ?: "Manual"
+    val cur = MODES.firstOrNull { it.key == current }
     LazyColumn(
         Modifier.fillMaxSize().statusBarsPadding(),
         contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
-            Column {
-                Text(
-                    "HARU OFFICIAL",
-                    style = TextStyle(
-                        brush = Brush.horizontalGradient(listOf(Cyan, Violet)),
-                        fontSize = 30.sp, fontWeight = FontWeight.ExtraBold,
-                    ),
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        "HARU OFFICIAL",
+                        style = TextStyle(
+                            brush = Brush.horizontalGradient(listOf(Cyan, Violet)),
+                            fontSize = 26.sp, fontWeight = FontWeight.ExtraBold,
+                        ),
+                    )
+                    Text("Game performance control", color = Muted, fontSize = 13.sp)
+                }
+                Pill(
+                    if (root == true) "● Root" else "○ No root",
+                    if (root == true) Color(0xFF4ADE80) else Color(0xFFF87171),
                 )
-                Text("Performance & Game Module", color = Muted, fontSize = 14.sp)
             }
         }
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatCard(
-                    Modifier.weight(1f), "🛡️", "Root Access",
-                    when (root) { true -> "Yes"; false -> "No"; null -> "Checking…" },
-                    when (root) { true -> Color(0xFF4ADE80); false -> Color(0xFFF87171); null -> Muted },
-                )
-                StatCard(Modifier.weight(1f), "🎚️", "Mode", currentTitle, Cyan)
+        item { Hero(cur, cool) }
+        items(MODES.chunked(2)) { pair ->
+            Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                pair.forEach { m ->
+                    ModeTile(
+                        Modifier.weight(1f), m, current == m.key, busy == m.key,
+                        if (m.key == "cooldown" && cool > 0) "${cool}s left" else null,
+                    ) { onMode(m) }
+                }
             }
-        }
-        items(MODES) { m ->
-            ModeCard(
-                m,
-                active = current == m.key,
-                loading = busy == m.key,
-                sub = if (m.key == "cooldown" && cool > 0) "Resting… ${cool}s left" else null,
-            ) { onMode(m) }
         }
         item { Spacer(Modifier.height(8.dp)) }
     }
 }
 
 @Composable
-fun StatCard(modifier: Modifier, emoji: String, label: String, value: String, valueColor: Color) {
-    Column(
-        modifier.clip(RoundedCornerShape(20.dp)).background(CardBg).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+fun Pill(text: String, color: Color) {
+    Text(
+        text, color = color, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+        modifier = Modifier.clip(RoundedCornerShape(50)).background(color.copy(alpha = 0.15f))
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+    )
+}
+
+@Composable
+fun Hero(cur: Mode?, cool: Int) {
+    val accent = cur?.color ?: Cyan
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(30.dp))
+            .background(Brush.linearGradient(listOf(accent.copy(alpha = 0.28f), CardBg)))
+            .padding(22.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(emoji, fontSize = 22.sp)
-        Text(label, color = Muted, fontSize = 13.sp)
-        Text(value, color = valueColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Box(
+            Modifier.size(84.dp).border(4.dp, Brush.sweepGradient(listOf(accent, Violet, accent)), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) { Text(cur?.emoji ?: "🎛️", fontSize = 34.sp) }
+        Spacer(Modifier.width(18.dp))
+        Column {
+            Text("CURRENT MODE", color = Muted, fontSize = 12.sp, letterSpacing = 1.5.sp)
+            Text(cur?.title ?: "Manual", fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+            Text(
+                if (cur?.key == "cooldown" && cool > 0) "${cool}s remaining" else (cur?.desc ?: "Pick a mode below"),
+                color = Muted, fontSize = 13.sp,
+            )
+        }
     }
 }
 
 @Composable
-fun ModeCard(m: Mode, active: Boolean, loading: Boolean, sub: String?, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(22.dp)
-    Row(
-        Modifier.fillMaxWidth().clip(shape).background(CardBg)
-            .border(if (active) 1.5.dp else 1.dp, if (active) m.color else Color(0x22FFFFFF), shape)
+fun ModeTile(modifier: Modifier, m: Mode, active: Boolean, loading: Boolean, sub: String?, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(26.dp)
+    Column(
+        modifier.aspectRatio(1.05f).clip(shape)
+            .background(Brush.linearGradient(listOf(m.color.copy(alpha = if (active) 0.35f else 0.14f), CardBg)))
+            .border(if (active) 2.dp else 1.dp, if (active) m.color else Color(0x1AFFFFFF), shape)
             .clickable(onClick = onClick).padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Box(
-            Modifier.size(52.dp).clip(CircleShape).background(m.color.copy(alpha = 0.18f)),
-            contentAlignment = Alignment.Center,
-        ) { Text(m.emoji, fontSize = 24.sp) }
-        Spacer(Modifier.width(14.dp))
-        Column(Modifier.weight(1f)) {
-            Text(m.title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-            Text(sub ?: m.desc, fontSize = 13.sp, color = Muted)
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(m.emoji, fontSize = 30.sp)
+            if (loading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = m.color)
+            else if (active) Box(Modifier.size(10.dp).clip(CircleShape).background(m.color))
         }
-        if (loading) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp, color = m.color)
-        else if (active) Text("ACTIVE", color = m.color, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Column {
+            Text(m.title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(sub ?: m.desc, fontSize = 12.sp, color = Muted, maxLines = 2)
+        }
     }
 }
 
